@@ -1,0 +1,37 @@
+Deck,Name,Cost,Attack,Health,Effect,Count
+Russia,Sacrafice,1,,,Discard a friendly unt and gain 7 life,3
+Russia,Rise,2,,,Lose 3 life and add 2/2 to unit,3
+Russia,Don Cossacks,3,2,3,On death add 2/2 to unit,3
+Russia,Milita,3,3,2,On death gain 1 supply,3
+Russia,Line Infantry,3,2,4,On death add 1/3 to unit,3
+Russia,Light Infantry,5,3,5,snipe,2
+Russia,Cuirassiers,3,3,3,Lose 3 life to add 1 atk to all friendly units in play,2
+Russia,Pavlov Grenadiers,4,3,7,lose 3 life when played,3
+Russia,Finnish Lifeguard Jaegers,5,2,5,"snipe, death add 2/2 to unit",3
+Russia,Madonna,5,,,"pick an enemy unit to destroy, opponent picks one of yours to destroy",2
+Russia,Scorched Earth Tactics,5,,,"destroy enemy unit, take their atk as damage to your general",3
+Prussia,Outflank (Umgehen),2,,,add 2 to attack,3
+Prussia,Artillery (Artillerie),4,1,7,combo,3
+Prussia,Adrenaline (Adrenalin),3,,,add 3 to attack,1
+Prussia,Jagers,3,1,6,combo,3
+Prussia,Evade (Ausweichen),1,,,blocks next attack,2
+Prussia,Summon reserves (Reserven einschicken),3,,,add 2 to hp,3
+Prussia,Ambush (Hinterhalt),2,,,do 2 damage to enemy,1
+Prussia,Husar,3,3,3,add 1 to supply,3
+Prussia,Deception (T„uschung),2,,,remove an attached action card,3
+Prussia,Landwehr,3,1,7,when played draw a card,3
+Prussia,Grenadiere,4,2,5,add 1/1 to another unit,2
+Prussia,Uhlans,4,1,5,"combo, deal 2 damage to enemy unit on play",3
+GreatBritain,Foot,4,2,6,combo,3
+GreatBritain,Artillery,4,2,6,gives adjacent units +2 hp,3
+GreatBritain,Scots Greys,4,2,6,ignores coutner attacks,1
+GreatBritain,Coldstream Guards,4,2,8,,3
+GreatBritain,Dragoons,4,2,5,"take unit in front, return it to opponets hand",2
+GreatBritain,Rifles,4,2,1,take adjacent unit and add atk to yours,2
+GreatBritain,Reinforce,1,,,draw another card,3
+GreatBritain,Ambush!,2,,,deal 2 damage to enemy unit and add 1 to general health,3
+GreatBritain,Supply Raid,2,,,stop unit from attacking next turn,3
+GreatBritain,Bayonet Charge,3,,,take a unit that has a supply cost of 4 or less and return it to your opponents hand,2
+GreatBritain,Iron Resolve,3,,,cancel effects of any action card,2
+GreatBritain,Uber Alles,6,,,return unit to opponents hand,1
+GreatBritain,Reform the Line,2,,,"rearrange your units, any way you like, then recalcualte bonuses?",2

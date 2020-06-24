@@ -1,0 +1,12 @@
+Deck,Name,Cost,Attack,Health,Effect,Count
+France,GardeNationale,3,2,4,"when played, deal 1 damage to unit in front",3
+France,FusiliersBarvares,3,2,4,"death, deal 1 damage to every unit on the board",3
+France,Infanteriedeligne,3,2,5,,3
+France,Infanteriedelegere,4,2,5,"when played, deal 2 damage to 1 unit, or 1 damage to 2 units",3
+France,JeuneGarde,4,2,5,provoke,3
+France,Artillerie,4,2,7,"on death, deal 4 damage to an enemy unit",2
+France,Cuirassiers,4,3,3,when played deal 2 damage to an enemy unit,3
+France,VieilleGarde,5,2,8,"when defeating a unit, deal 4 damage to another unit",2
+France,Renforcer,1,,,draw a card,3
+France,Embuscade,2,,,deal 2 damage to enemy,3
+France,ViveLEmpereur,3,,,deal 3 damage to enemy,2

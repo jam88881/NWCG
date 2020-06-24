@@ -1,0 +1,12 @@
+Deck,Name,Cost,Attack,Health,Effect,Count
+Austria,Landwehr,3,1,7,add 1 to supply for this turn,3
+Austria,UngarischeHusaren,3,2,5,add 4 hp and 2 atk to a unit,3
+Austria,Grenadiere,4,2,5,prevent enemy in front from attacking,2
+Austria,Linieninfanterie,4,2,5,add 1/1 to another unit,3
+Austria,Jagers,4,1,5,"snipe, add 1 to supply, deal 2 damage to enemy unit in front on play",3
+Austria,Krassiere,5,2,9,,3
+Austria,Artillerie,6,2,7,"victory gains 2/3, damages adjacent units as well",3
+Austria,Windbchse,3,,,"add 2 atk to unit, add pierce to this unit",1
+Austria,Barrikade,1,,,blocks next attack,3
+Austria,Hinterhalt,2,,,2 damage to enemy unit,3
+Austria,NationinWaffen,2,,,add 2 to units atk,3
