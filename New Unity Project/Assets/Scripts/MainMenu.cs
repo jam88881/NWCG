@@ -27,6 +27,7 @@ public class MainMenu : MonoBehaviour
         myButtonStyle.hover.textColor = Color.red;
         if (GUI.Button(new Rect((Screen.width/2) - 81, 3*(Screen.height/4) , 162, 100), "Start", myButtonStyle))
         {
+            CrossSceneData.sCreateGameID = "chadwarmachine";
             SceneManager.LoadScene("InGame");
         }
     }
