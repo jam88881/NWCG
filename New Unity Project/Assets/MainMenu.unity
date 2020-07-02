@@ -352,6 +352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0b5b8e1de596a4458c42c290ca58cb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sGamesListURL: https://friendpaste.com/6j78vddJ26maCJgIFCwMuD
 --- !u!4 &228655815
 Transform:
   m_ObjectHideFlags: 0
