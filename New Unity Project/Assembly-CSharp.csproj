@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Card.cs" />
     <Compile Include="Assets\Scripts\CardSpace.cs" />
+    <Compile Include="Assets\Scripts\CoroutineWithData.cs" />
     <Compile Include="Assets\Scripts\CrossSceneData.cs" />
     <Compile Include="Assets\Scripts\Draggable.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />

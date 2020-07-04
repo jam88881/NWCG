@@ -24,43 +24,135 @@ public class GameManager : MonoBehaviour
     public string sPostURL = "https://www.friendpaste.com/";
     public string sThisGameURL = "https://friendpaste.com/6j78vddJ26maCJgIFCcNpp";
     public string sGamesListURL = "https://friendpaste.com/6j78vddJ26maCJgIFCwMuD";
-    public string sOrder = "HostMoveFirst";
+    public string sWhoseTurnIsItAnyway = "Host";
+    public string sLocalRole = "Host";
     public List<string> Deck;
     public List<string> playerHand;
     public Vector3 vHand = new Vector3(0,-1,-14);
     public int frameCount = 0;
     public int localHP = 20;
     public int remoteHP = 20;
-    public bool localIsHost = true;
+    public long lastTick = long.MaxValue;
+    public bool myTurn = true;
 
     // Start is called before the first frame update
     void Start()
     {
+        lastTick = DateTime.Now.Ticks;
+        string sDeckDataFilename;
         if (CrossSceneData.sJoinGameURL.Length == 0)
         {
             CreateMultiplayerGame();
+            sDeckDataFilename = "AustriaDeckData";
         }
         else
         {
             sThisGameURL = CrossSceneData.sJoinGameURL;
+            sDeckDataFilename = "FranceDeckData";
+            sLocalRole = "Guest";
+            myTurn = false;
         }
 
-        Deck = AssembleCardList();
+        Deck = AssembleCardList(sDeckDataFilename, true);
 
+        List<Vector3> listHand = new List<Vector3>();
         //draw 5 cards
         for(int i=0; i < 5; i++)
         { 
             playerHand.Add(DrawCard());
+            listHand.Add(new Vector3(vHand.x - (i * 3), vHand.y, vHand.z));
         }
 
         //generate hand
-        GenerateCards(playerHand, vHand);
+        GenerateCards(playerHand, listHand);
     }
 
     // Update is called once per frame
     void Update()
     {
+        frameCount++;
+        //get an update from the server every 50 frames
+        if (frameCount % 400 == 0)
+        {
+            StartCoroutine(GetAndPerformUpdates());
 
+        }
+    }
+
+    void WhoseTurn(string sGottenData)
+    {
+        if (sGottenData.StartsWith("Host"))
+        {
+            sWhoseTurnIsItAnyway = "Host";
+        }
+        else
+        {
+            sWhoseTurnIsItAnyway = "Guest";
+        }
+    }
+
+    void EndTurn()
+    {
+        if (sLocalRole == "Guest")
+        {
+            sWhoseTurnIsItAnyway = "Host";
+        }
+        if (sLocalRole == "Host")
+        {
+            sWhoseTurnIsItAnyway = "Guest";
+        }
+        UpdateData(sThisGameURL, CrossSceneData.sCreateGameName, "`" + sWhoseTurnIsItAnyway + "`");
+    }
+
+    IEnumerator<Coroutine> GetAndPerformUpdates()
+    {
+        CoroutineWithData cd = new CoroutineWithData(this, GetData(sThisGameURL));
+        yield return cd.coroutine;
+        string[] gameDataArray = cd.result.ToString().Split('`')[1].Split(',');
+        WhoseTurn(gameDataArray[0]);
+        for (int i = 1; i < gameDataArray.Length; i++)
+        {
+            try 
+            {
+                Debug.Log(gameDataArray[i]);
+                string[] entryArray = gameDataArray[i].Split('-');
+                if (lastTick < long.Parse(entryArray[3]))
+                {
+                    //these are the entries we are intrested in, the ones we don't know about yet
+                    if (entryArray[0] == "Move")
+                    {
+                        string inCard = entryArray[1];
+                        List<string> lInCard = new List<string>();
+                        lInCard.Add(inCard.Replace("_",","));
+                        string space = entryArray[2].Replace("local","remote");
+                        GameObject oSpace = GameObject.Find(space);
+                        List<Vector3> lPos = new List<Vector3>();
+                        lPos.Add(oSpace.transform.position + new Vector3(0, 0.1f, 0));
+                        GenerateCards(lInCard, lPos);
+                    }
+                    lastTick = long.Parse(entryArray[3]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Log(ex.ToString());
+            }
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (sWhoseTurnIsItAnyway == sLocalRole)
+        {
+            if (GUI.Button(new Rect(0, 0, 100, 100), "End Turn"))
+            {
+                EndTurn();
+            }
+        }
+        else
+        {
+            GUI.Label(new Rect(0, 0, 100, 100), "Other player's turn");
+        }
     }
 
     public string DrawCard()
@@ -75,21 +167,22 @@ public class GameManager : MonoBehaviour
 
         Debug.Log(CrossSceneData.sCreateGameName);
         //POST the inital game data
-        string responseCreate = postData(sPostURL, CrossSceneData.sCreateGameName, "`" + sOrder + "`");
+        string responseCreate = PostData(sPostURL, CrossSceneData.sCreateGameName, "`" + sWhoseTurnIsItAnyway + "`");
         //DateTime.Now.Ticks.ToString().Substring(10, 4)
 
         //put the game data URL in the listing
         string gameURLToList = responseCreate.Split(',')[0].Replace(responseCreate.Split(':')[0], "").Replace("\"", "").Replace(": ", "");
         sThisGameURL = gameURLToList;
-        updateData(sGamesListURL, "NWCGList", "`" + CrossSceneData.sCreateGameName + "," + gameURLToList + "`");
-        Debug.Log(getData(sGamesListURL).Split('`')[1]);
+        UpdateData(sGamesListURL, "NWCGList", "`" + CrossSceneData.sCreateGameName + "," + gameURLToList + "`");
+        Debug.Log(StringGetData(sGamesListURL).Split('`')[1]);
     }
 
-    public void GenerateCards(List<string> lCardList, Vector3 pPosition)
+    public void GenerateCards(List<string> lCardList, List<Vector3> pPosition, bool inPlay = false)
     {
-        int i = lCardList.Count;
+        int i = 0;
         foreach (string sCard in lCardList)
         {
+            // x 0-(i*3)
             string[] sArrayCard = sCard.Split(',');
             GameObject goCard = (GameObject)Instantiate(blankCard);
             goCard.GetComponent<Card>().Deck = sArrayCard[0];
@@ -97,34 +190,39 @@ public class GameManager : MonoBehaviour
             goCard.GetComponent<Card>().Cost = Convert.ToInt32(sArrayCard[2]);
             goCard.GetComponent<Card>().Attack = sArrayCard[3];
             try { goCard.GetComponent<Card>().Health = Convert.ToInt32(sArrayCard[4]); } catch (Exception ex) { goCard.GetComponent<Card>().Health = 0; }
-            goCard.transform.position = new Vector3(0-(i*3),pPosition.y, pPosition.z);
+            goCard.transform.position = new Vector3(pPosition[i].x, pPosition[i].y, pPosition[i].z);
+            goCard.GetComponent<Card>().inPlay = inPlay;
             goCard.name = sArrayCard[0] + "_" + sArrayCard[1] + "_" + sArrayCard[2] + "_" + sArrayCard[3] + "_" + sArrayCard[4] + "_" + sArrayCard[6].Replace("\r", "");
-            i--;
+            i++;
         }
     }
 
-    public List<string> AssembleCardList(bool bShuffle = true)
+    public List<string> AssembleCardList(string sDeckDataFileName, bool bShuffle)
     {
         List<string> cardList = new List<string>();
 
         //Local Player Cards
-        TextAsset LocalPlayerTextAsset = (TextAsset)Resources.Load("FranceDeckData", typeof(TextAsset));
+        TextAsset LocalPlayerTextAsset = (TextAsset)Resources.Load(sDeckDataFileName, typeof(TextAsset));
         string sLocalPlayerDeckData = LocalPlayerTextAsset.text;
         Debug.Log(sLocalPlayerDeckData);
 
-        foreach (string sEntry in sLocalPlayerDeckData.Split('\n'))
-        {
-            if (sEntry.Split(',')[0] != "Deck")
+
+            foreach (string sEntry in sLocalPlayerDeckData.Split('\n'))
             {
-                int cardCount = Convert.ToInt32(sEntry.Split(',')[6].Replace("\r", ""));
-                for (int i = 0; i < cardCount; i++)
+                if (sEntry.Split(',')[0] != "Deck")
                 {
-                    cardList.Add(sEntry.Replace("\r", ""));
+                    int cardCount = Convert.ToInt32(sEntry.Split(',')[6].Replace("\r", ""));
+                    for (int i = 0; i < cardCount; i++)
+                    {
+                        cardList.Add(sEntry.Replace("\r", ""));
+                    }
                 }
             }
+        
+        if (bShuffle)
+        { 
+            cardList = cardList.OrderBy(x => UnityEngine.Random.value).ToList();
         }
-
-        cardList = cardList.OrderBy(x => UnityEngine.Random.value).ToList();
 
         Debug.Log("Shuffled Deck List:");
         foreach (string cardEntry in Deck)
@@ -136,7 +234,7 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public string getData(string pURL)
+    public string StringGetData(string pURL)
     {
         var request = (HttpWebRequest)WebRequest.Create(pURL);
         request.Method = "GET";
@@ -145,7 +243,16 @@ public class GameManager : MonoBehaviour
         return responseString;
     }
 
-    public string postData(string pPostURL, string pTitle, string pBody)
+    public IEnumerator<string> GetData(string pURL)
+    {
+        var request = (HttpWebRequest)WebRequest.Create(pURL);
+        request.Method = "GET";
+        var response = (HttpWebResponse)request.GetResponse();
+        var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+        yield return responseString;
+    }
+
+    public string PostData(string pPostURL, string pTitle, string pBody)
     {
         var request = (HttpWebRequest)WebRequest.Create(pPostURL);
 
@@ -167,11 +274,11 @@ public class GameManager : MonoBehaviour
 
         var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
-        //Debug.Log(responseString);
+        lastTick = DateTime.Now.Ticks;
         return responseString;
     }
 
-    public string updateData(string pPutURL, string pTitle, string pBody)
+    public string UpdateData(string pPutURL, string pTitle, string pBody)
     {
         var request = (HttpWebRequest)WebRequest.Create(pPutURL);
 
@@ -193,7 +300,7 @@ public class GameManager : MonoBehaviour
 
         var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
-        Debug.Log(responseString);
+        lastTick = DateTime.Now.Ticks;
         return responseString;
     }
 

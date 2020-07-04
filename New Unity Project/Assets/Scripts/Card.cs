@@ -12,12 +12,12 @@ public class Card : MonoBehaviour
     public int Health;
     public bool inPlay = false;
     public Light inPlayIndicatorLight;
-    public GameObject oGameManager;
+    public GameManager oGameManager;
 
     // Start is called before the first frame update
     void Start()
     {
-        oGameManager = GameObject.Find("GameManager");
+        oGameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
         //set card face
         GameObject face = this.transform.Find("face").gameObject;
@@ -33,7 +33,6 @@ public class Card : MonoBehaviour
         matBack.mainTexture = backTexture;
         back.GetComponent<Renderer>().material = matBack;
 
-        //inPlayIndicatorLight.enabled = true;
     }
 
     // Update is called once per frame
@@ -49,6 +48,11 @@ public class Card : MonoBehaviour
         GUI.Label(new Rect(screenPos.x - (Screen.width/20), (Screen.height - screenPos.y) - (Screen.height/40), Screen.width / 15, Screen.height / 15), Health.ToString());
     }
 
+    private void OnMouseDown()
+    {
+
+    }
+
     private void OnMouseUp()
     {
         // Bit shift the index of the layer (8) to get a bit mask
@@ -62,30 +66,34 @@ public class Card : MonoBehaviour
         // Does the ray intersect any objects excluding the player layer
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.up), out hit, Mathf.Infinity, layerMask))
         {
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.up) * hit.distance, Color.yellow);
-            Debug.Log(hit.collider.gameObject.name);
+            //Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.up) * hit.distance, Color.yellow);
+            //Debug.Log(hit.collider.gameObject.name);
             if (hit.collider.gameObject.name.Contains("local") && !(hit.collider.gameObject.GetComponent<CardSpace>().occupied))
             {
-                try
+                //is it actually my turn?
+                if (oGameManager.sWhoseTurnIsItAnyway == oGameManager.sLocalRole)
                 {
-                    this.transform.position = hit.collider.gameObject.transform.position + new Vector3(0, 0.1f, 0);
-                    hit.collider.gameObject.GetComponent<CardSpace>().occupied = true;
-                    Destroy(GetComponent<Draggable>());
-                    //oGameManager
-                    string sGetData = oGameManager.GetComponent<GameManager>().getData(oGameManager.GetComponent<GameManager>().sThisGameURL).Split('`')[1];
-                    string sPutData = "`" + sGetData + "," + "Move-" + this.name + "-" + hit.collider.gameObject.GetComponent<CardSpace>().name + "`";
-                    oGameManager.GetComponent<GameManager>().updateData(oGameManager.GetComponent<GameManager>().sThisGameURL, CrossSceneData.sCreateGameName, sPutData);
+                    try
+                    {
+                        this.transform.position = hit.collider.gameObject.transform.position + new Vector3(0, 0.1f, 0);
+                        hit.collider.gameObject.GetComponent<CardSpace>().occupied = true;
+                        Destroy(GetComponent<Draggable>());
+                        //oGameManager
+                        string sGetData = oGameManager.GetComponent<GameManager>().StringGetData(oGameManager.GetComponent<GameManager>().sThisGameURL).Split('`')[1];
+                        string sPutData = "`" + sGetData + "," + "Move-" + this.name + "-" + hit.collider.gameObject.GetComponent<CardSpace>().name + "-" + DateTime.Now.Ticks.ToString() + "`";
+                        oGameManager.GetComponent<GameManager>().UpdateData(oGameManager.GetComponent<GameManager>().sThisGameURL, CrossSceneData.sCreateGameName, sPutData);
+                        inPlay = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw;
+                    }
                 }
-                catch (Exception ex)
+                else 
                 {
-                    throw;
+                    Debug.Log("It's not your turn");
                 }
             }
         }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        Debug.Log("huuupuuuuu");
     }
 }
