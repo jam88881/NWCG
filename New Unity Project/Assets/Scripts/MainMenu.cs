@@ -43,12 +43,12 @@ public class MainMenu : MonoBehaviour
         //join
         if (GUI.Button(new Rect((Screen.width/2) + 100, 3*(Screen.height/4) , 162, 100), "Join ", myGUIStyle))
         {
-            CrossSceneData.sJoinGameURL = getData(sGamesListURL).Split('`')[1].Split(',')[1];
+            CrossSceneData.sJoinGameURL = getHostedGames(sGamesListURL).Split('`')[1].Split(',')[1];
             SceneManager.LoadScene("InGame");
         }
     }
 
-    public string getData(string pURL)
+    public string getHostedGames(string pURL)
     {
         var request = (HttpWebRequest)WebRequest.Create(pURL);
         request.Method = "GET";
