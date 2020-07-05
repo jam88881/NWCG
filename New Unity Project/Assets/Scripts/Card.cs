@@ -10,7 +10,12 @@ public class Card : MonoBehaviour
     public int Cost;
     public string Attack;
     public int Health;
+    public int AttacksPerTurn = 1;
+    public int AttacksMadeThisTurn = 0;
+    public int lane = 0;
     public bool inPlay = false;
+    public bool remote = false;
+    public bool selected = false;
     public Light inPlayIndicatorLight;
     public GameManager oGameManager;
 
@@ -38,7 +43,14 @@ public class Card : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        inPlayIndicatorLight.enabled = selected;
 
+        //death condition
+        if (Health <= 0)
+        {
+            Debug.Log(this.name + " is dead");
+            Destroy(this.gameObject);
+        }
     }
 
     void OnGUI()
@@ -50,7 +62,56 @@ public class Card : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (!remote)
+        {
+            StartCoroutine(SelectMe());
+        }
+        else 
+        {
+            oGameManager.keepSelection = true;
+            //if this card can still attack this turn and it is your turn and both cards are in Play 
+            //and the difference between the lane number less than or equal to 1
+            if (AttacksMadeThisTurn < AttacksPerTurn && oGameManager.sWhoseTurnIsItAnyway == oGameManager.sLocalRole
+                && oGameManager.selectedCard.inPlay && inPlay && Math.Abs(oGameManager.selectedCard.lane - lane) <= 1)
+            {
+                AttacksMadeThisTurn++;
+                PerformAttack();
+            }
+            
+        }
+    }
 
+    void PerformAttack()
+    {
+        //local
+        int iOffensiveCardAttack = Convert.ToInt32(oGameManager.selectedCard.Attack);
+        Health -= iOffensiveCardAttack;
+
+        //send the information to remote
+        string sGetData = oGameManager.GetComponent<GameManager>().StringGetData(oGameManager.GetComponent<GameManager>().sThisGameURL).Split('`')[1];
+        string sPutData = "`" + sGetData + ",Attack-" + this.name + "-" + iOffensiveCardAttack.ToString() + "-" + (DateTime.Now.Ticks - 1).ToString();
+
+        //if cards in the same lane then attacking card takes retaliation damage
+        if (oGameManager.selectedCard.lane - lane == 0)
+        {
+            //local
+            oGameManager.selectedCard.Health -= Convert.ToInt32(Attack);
+
+            //remote
+            sPutData = sPutData + ",Attack-" + oGameManager.selectedCard.gameObject.name + "-" + Attack + "-" + DateTime.Now.Ticks.ToString();
+        }
+
+        sPutData = sPutData + "`";
+        oGameManager.GetComponent<GameManager>().UpdateData(oGameManager.GetComponent<GameManager>().sThisGameURL, CrossSceneData.sCreateGameName, sPutData);
+
+    }
+
+    private IEnumerator SelectMe()
+    {
+        //wait one frame to deselect the other card
+        yield return 0;
+        selected = true;
+        oGameManager.selectedCard = this;
     }
 
     private void OnMouseUp()
@@ -70,9 +131,10 @@ public class Card : MonoBehaviour
             //Debug.Log(hit.collider.gameObject.name);
             if (hit.collider.gameObject.name.Contains("local") && !(hit.collider.gameObject.GetComponent<CardSpace>().occupied))
             {
-                //is it actually my turn?
-                if (oGameManager.sWhoseTurnIsItAnyway == oGameManager.sLocalRole)
+                //is it actually my turn? Can I afford to Pay for this card?
+                if (oGameManager.sWhoseTurnIsItAnyway == oGameManager.sLocalRole && Cost <= oGameManager.supply)
                 {
+                    oGameManager.supply -= Cost;
                     try
                     {
                         this.transform.position = hit.collider.gameObject.transform.position + new Vector3(0, 0.1f, 0);

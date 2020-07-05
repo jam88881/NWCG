@@ -35,3 +35,13 @@ GreatBritain,Bayonet Charge,3,,,take a unit that has a supply cost of 4 or less 
 GreatBritain,Iron Resolve,3,,,cancel effects of any action card,2
 GreatBritain,Uber Alles,6,,,return unit to opponents hand,1
 GreatBritain,Reform the Line,2,,,"rearrange your units, any way you like, then recalcualte bonuses?",2
+
+
+Austria,Barrikade,1,,,blocks next attack,3
+Austria,Hinterhalt,2,,,2 damage to enemy unit,3
+Austria,NationinWaffen,2,,,add 2 to units atk,3
+
+
+France,Renforcer,1,,,draw a card,3
+France,Embuscade,2,,,deal 2 damage to enemy,3
+France,ViveLEmpereur,3,,,deal 3 damage to enemy,2

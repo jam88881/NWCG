@@ -7,6 +7,3 @@ France,JeuneGarde,4,2,5,provoke,3
 France,Artillerie,4,2,7,on death deal 4 damage to an enemy unit,2
 France,Cuirassiers,4,3,3,when played deal 2 damage to an enemy unit,3
 France,VieilleGarde,5,2,8,when defeating a unit deal 4 damage to another unit,2
-France,Renforcer,1,,,draw a card,3
-France,Embuscade,2,,,deal 2 damage to enemy,3
-France,ViveLEmpereur,3,,,deal 3 damage to enemy,2

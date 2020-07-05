@@ -249,7 +249,7 @@ ScriptsOnlyBuild:
     className: PhysicsRaycaster
   - hash:
       serializedVersion: 2
-      Hash: d39a6ceeaab4d5e0502247b62eb860a9
+      Hash: 05382651498ad4f7c5fa5e643239ce03
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: GameManager
@@ -339,7 +339,7 @@ ScriptsOnlyBuild:
     className: ScrollRect
   - hash:
       serializedVersion: 2
-      Hash: 649b9e8cde97174bb1a26a8344c9beae
+      Hash: ae2d910ab7154f96c8ee56d0e52b686a
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Card

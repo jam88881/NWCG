@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public GameObject remoteZone3;
     public GameObject remoteZone4;
     public GameObject remoteZone5;
+    public Card selectedCard;
     public string sPostURL = "https://www.friendpaste.com/";
     public string sThisGameURL = "https://friendpaste.com/6j78vddJ26maCJgIFCcNpp";
     public string sGamesListURL = "https://friendpaste.com/6j78vddJ26maCJgIFCwMuD";
@@ -32,8 +33,11 @@ public class GameManager : MonoBehaviour
     public int frameCount = 0;
     public int localHP = 20;
     public int remoteHP = 20;
+    public int turn = 1;
+    public int supply = 3;
     public long lastTick = long.MaxValue;
     public bool myTurn = true;
+    public bool keepSelection;
 
     // Start is called before the first frame update
     void Start()
@@ -65,6 +69,12 @@ public class GameManager : MonoBehaviour
 
         //generate hand
         GenerateCards(playerHand, listHand);
+
+        //if you are going first thendraw a card
+        if (sLocalRole == "Host")
+        {
+            DrawAndGenerateCard();
+        }
     }
 
     // Update is called once per frame
@@ -77,10 +87,28 @@ public class GameManager : MonoBehaviour
             StartCoroutine(GetAndPerformUpdates());
 
         }
+
+        //deselect card
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (!keepSelection && selectedCard != null)
+            {
+                selectedCard.selected = false;
+                selectedCard = null;
+            }
+            else 
+            {
+                keepSelection = false;
+            }
+        }
     }
 
     void WhoseTurn(string sGottenData)
     {
+        //if the incoming value is different from the current value and it matches local role, then draw a card
+        //this is detecting the turn change event
+
+
         if (sGottenData.StartsWith("Host"))
         {
             sWhoseTurnIsItAnyway = "Host";
@@ -93,6 +121,9 @@ public class GameManager : MonoBehaviour
 
     void EndTurn()
     {
+        //incrament turn
+        turn++;
+
         if (sLocalRole == "Guest")
         {
             sWhoseTurnIsItAnyway = "Host";
@@ -101,7 +132,37 @@ public class GameManager : MonoBehaviour
         {
             sWhoseTurnIsItAnyway = "Guest";
         }
-        UpdateData(sThisGameURL, CrossSceneData.sCreateGameName, "`" + sWhoseTurnIsItAnyway + "`");
+        string sGetData = GetComponent<GameManager>().StringGetData(GetComponent<GameManager>().sThisGameURL).Split('`')[1];
+        sGetData = sGetData.Replace(sGetData.Split(',')[0], sWhoseTurnIsItAnyway);
+        UpdateData(sThisGameURL, CrossSceneData.sCreateGameName, "`" + sGetData + ",Draw---" + DateTime.Now.Ticks.ToString() + "`");
+
+        //set supply
+        supply = turn + 2;
+
+        //max 10 supply universal rule
+        if (supply > 10)
+        {
+            supply = 10;
+        }
+
+        //reset all "Card.AttacksMadeThisTurn" back to 0
+        Card[] cards = GameObject.FindObjectsOfType<Card>();
+        for (int i = 0; i < cards.Length; i++)
+        {
+            cards[i].AttacksMadeThisTurn = 0;
+        }
+
+    }
+
+    void DrawAndGenerateCard()
+    {
+        //draw card
+        List<string> lDrawnCard = new List<string>();
+        lDrawnCard.Add(DrawCard());
+        Vector3 drawnCardPosition = new Vector3(-14.88f, -1f, -2.5f);
+        List<Vector3> lDrawnCardPosition = new List<Vector3>();
+        lDrawnCardPosition.Add(drawnCardPosition);
+        GenerateCards(lDrawnCard, lDrawnCardPosition);
     }
 
     IEnumerator<Coroutine> GetAndPerformUpdates()
@@ -119,16 +180,26 @@ public class GameManager : MonoBehaviour
                 if (lastTick < long.Parse(entryArray[3]))
                 {
                     //these are the entries we are intrested in, the ones we don't know about yet
-                    if (entryArray[0] == "Move")
+                    switch(entryArray[0])
                     {
-                        string inCard = entryArray[1];
-                        List<string> lInCard = new List<string>();
-                        lInCard.Add(inCard.Replace("_",","));
-                        string space = entryArray[2].Replace("local","remote");
-                        GameObject oSpace = GameObject.Find(space);
-                        List<Vector3> lPos = new List<Vector3>();
-                        lPos.Add(oSpace.transform.position + new Vector3(0, 0.1f, 0));
-                        GenerateCards(lInCard, lPos);
+                        case "Move":
+                            string inCard = entryArray[1];
+                            List<string> lInCard = new List<string>();
+                            lInCard.Add(inCard.Replace("_", ","));
+                            string space = entryArray[2].Replace("local", "remote");
+                            GameObject oSpace = GameObject.Find(space);
+                            List<Vector3> lPos = new List<Vector3>();
+                            lPos.Add(oSpace.transform.position + new Vector3(0, 0.1f, 0));
+                            GenerateCards(lInCard, lPos, true, true);
+                            break;
+                        case "Draw":
+                            DrawAndGenerateCard();
+                            break;
+                        case "Attack":
+                            Debug.Log(entryArray[1]);
+                            GameObject oCardUnderAttack = GameObject.Find(entryArray[1]);
+                            oCardUnderAttack.GetComponent<Card>().Health -= Convert.ToInt32(entryArray[2]);
+                            break;
                     }
                     lastTick = long.Parse(entryArray[3]);
                 }
@@ -153,6 +224,9 @@ public class GameManager : MonoBehaviour
         {
             GUI.Label(new Rect(0, 0, 100, 100), "Other player's turn");
         }
+
+        GUI.Label(new Rect(0, 100, 100, 100), "Supply: " + supply.ToString());
+
     }
 
     public string DrawCard()
@@ -177,7 +251,7 @@ public class GameManager : MonoBehaviour
         Debug.Log(StringGetData(sGamesListURL).Split('`')[1]);
     }
 
-    public void GenerateCards(List<string> lCardList, List<Vector3> pPosition, bool inPlay = false)
+    public void GenerateCards(List<string> lCardList, List<Vector3> pPosition, bool bInPlay = false, bool bRemote = false)
     {
         int i = 0;
         foreach (string sCard in lCardList)
@@ -191,8 +265,16 @@ public class GameManager : MonoBehaviour
             goCard.GetComponent<Card>().Attack = sArrayCard[3];
             try { goCard.GetComponent<Card>().Health = Convert.ToInt32(sArrayCard[4]); } catch (Exception ex) { goCard.GetComponent<Card>().Health = 0; }
             goCard.transform.position = new Vector3(pPosition[i].x, pPosition[i].y, pPosition[i].z);
-            goCard.GetComponent<Card>().inPlay = inPlay;
-            goCard.name = sArrayCard[0] + "_" + sArrayCard[1] + "_" + sArrayCard[2] + "_" + sArrayCard[3] + "_" + sArrayCard[4] + "_" + sArrayCard[6].Replace("\r", "");
+            goCard.GetComponent<Card>().inPlay = bInPlay;
+            goCard.GetComponent<Card>().remote = bRemote;
+            if (bRemote)
+            {
+                goCard.name = sArrayCard[0] + "_" + sArrayCard[1] + "_" + sArrayCard[2] + "_" + sArrayCard[3] + "_" + sArrayCard[4] + "_" + sArrayCard[5].Replace("\r", "");
+            }
+            else
+            {
+                goCard.name = sArrayCard[0] + "_" + sArrayCard[1] + "_" + sArrayCard[2] + "_" + sArrayCard[3] + "_" + sArrayCard[4] + "_" + sArrayCard[6].Replace("\r", "");
+            }
             i++;
         }
     }
