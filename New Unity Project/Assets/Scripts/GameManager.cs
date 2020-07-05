@@ -186,11 +186,11 @@ public class GameManager : MonoBehaviour
                             string inCard = entryArray[1];
                             List<string> lInCard = new List<string>();
                             lInCard.Add(inCard.Replace("_", ","));
-                            string space = entryArray[2].Replace("local", "remote");
-                            GameObject oSpace = GameObject.Find(space);
+                            string sSpaceName = entryArray[2].Replace("local", "remote");
+                            GameObject oSpace = GameObject.Find(sSpaceName);
                             List<Vector3> lPos = new List<Vector3>();
                             lPos.Add(oSpace.transform.position + new Vector3(0, 0.1f, 0));
-                            GenerateCards(lInCard, lPos, true, true);
+                            GenerateCards(lInCard, lPos, true, true, Convert.ToInt32(sSpaceName.Substring(sSpaceName.Length - 1)));
                             break;
                         case "Draw":
                             DrawAndGenerateCard();
@@ -251,7 +251,7 @@ public class GameManager : MonoBehaviour
         Debug.Log(StringGetData(sGamesListURL).Split('`')[1]);
     }
 
-    public void GenerateCards(List<string> lCardList, List<Vector3> pPosition, bool bInPlay = false, bool bRemote = false)
+    public void GenerateCards(List<string> lCardList, List<Vector3> pPosition, bool bInPlay = false, bool bRemote = false, int iLane = 0)
     {
         int i = 0;
         foreach (string sCard in lCardList)
@@ -267,6 +267,7 @@ public class GameManager : MonoBehaviour
             goCard.transform.position = new Vector3(pPosition[i].x, pPosition[i].y, pPosition[i].z);
             goCard.GetComponent<Card>().inPlay = bInPlay;
             goCard.GetComponent<Card>().remote = bRemote;
+            goCard.GetComponent<Card>().lane = iLane;
             if (bRemote)
             {
                 goCard.name = sArrayCard[0] + "_" + sArrayCard[1] + "_" + sArrayCard[2] + "_" + sArrayCard[3] + "_" + sArrayCard[4] + "_" + sArrayCard[5].Replace("\r", "");

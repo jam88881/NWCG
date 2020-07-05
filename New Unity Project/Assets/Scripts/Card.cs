@@ -13,6 +13,7 @@ public class Card : MonoBehaviour
     public int AttacksPerTurn = 1;
     public int AttacksMadeThisTurn = 0;
     public int lane = 0;
+    public string spaceGOName = "";
     public bool inPlay = false;
     public bool remote = false;
     public bool selected = false;
@@ -49,6 +50,10 @@ public class Card : MonoBehaviour
         if (Health <= 0)
         {
             Debug.Log(this.name + " is dead");
+            if (!remote)
+            { 
+                GameObject.Find(spaceGOName).GetComponent<CardSpace>().occupied = false;
+            }
             Destroy(this.gameObject);
         }
     }
@@ -68,6 +73,15 @@ public class Card : MonoBehaviour
         }
         else 
         {
+            try
+            {
+                Destroy(this.gameObject.GetComponent<Draggable>());
+            }
+            catch (Exception ex)
+            {
+                Debug.Log("removed component Draggable");
+            }
+
             oGameManager.keepSelection = true;
             //if this card can still attack this turn and it is your turn and both cards are in Play 
             //and the difference between the lane number less than or equal to 1
@@ -137,14 +151,17 @@ public class Card : MonoBehaviour
                     oGameManager.supply -= Cost;
                     try
                     {
+                        string sSpaceName = hit.collider.gameObject.GetComponent<CardSpace>().name;
                         this.transform.position = hit.collider.gameObject.transform.position + new Vector3(0, 0.1f, 0);
                         hit.collider.gameObject.GetComponent<CardSpace>().occupied = true;
                         Destroy(GetComponent<Draggable>());
                         //oGameManager
                         string sGetData = oGameManager.GetComponent<GameManager>().StringGetData(oGameManager.GetComponent<GameManager>().sThisGameURL).Split('`')[1];
-                        string sPutData = "`" + sGetData + "," + "Move-" + this.name + "-" + hit.collider.gameObject.GetComponent<CardSpace>().name + "-" + DateTime.Now.Ticks.ToString() + "`";
+                        string sPutData = "`" + sGetData + "," + "Move-" + this.name + "-" + sSpaceName + "-" + DateTime.Now.Ticks.ToString() + "`";
                         oGameManager.GetComponent<GameManager>().UpdateData(oGameManager.GetComponent<GameManager>().sThisGameURL, CrossSceneData.sCreateGameName, sPutData);
                         inPlay = true;
+                        lane = Convert.ToInt32(sSpaceName.Substring(sSpaceName.Length - 1));
+                        spaceGOName = sSpaceName;
                     }
                     catch (Exception ex)
                     {

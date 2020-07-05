@@ -339,7 +339,7 @@ ScriptsOnlyBuild:
     className: ScrollRect
   - hash:
       serializedVersion: 2
-      Hash: ae2d910ab7154f96c8ee56d0e52b686a
+      Hash: 7a320ae8d626b882dff701cc4b21d11f
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Card
